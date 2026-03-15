@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../theme/app_theme.dart';
+import '../providers/auth_provider.dart';
 import 'register_screen.dart';
 import 'home_screen.dart';
 
@@ -17,6 +19,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final authProvider = Provider.of<AuthProvider>(context);
+
     return Scaffold(
       backgroundColor: AppTheme.black,
       body: SafeArea(
@@ -26,8 +30,6 @@ class _LoginScreenState extends State<LoginScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 60),
-
-              // Logo
               Center(
                 child: Container(
                   width: 70,
@@ -43,31 +45,36 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
               ),
-
               const SizedBox(height: 40),
-
-              // Welcome Text
-              const Text(
-                'Welcome Back',
-                style: AppTheme.heading,
-              ),
+              const Text('Welcome Back', style: AppTheme.heading),
               const SizedBox(height: 8),
               const Text(
                 'Sign in to your Filmdin account',
                 style: AppTheme.subheading,
               ),
-
               const SizedBox(height: 40),
 
-              // Email Field
-              const Text(
-                'Email',
-                style: TextStyle(
-                  color: AppTheme.white,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
+              // Error Message
+              if (authProvider.errorMessage != null)
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  margin: const EdgeInsets.only(bottom: 16),
+                  decoration: BoxDecoration(
+                    color: Colors.red.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.red.withOpacity(0.3)),
+                  ),
+                  child: Text(
+                    authProvider.errorMessage!,
+                    style: const TextStyle(color: Colors.red, fontSize: 14),
+                  ),
                 ),
-              ),
+
+              const Text('Email',
+                  style: TextStyle(
+                      color: AppTheme.white,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500)),
               const SizedBox(height: 8),
               TextField(
                 controller: emailController,
@@ -86,23 +93,17 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(
-                        color: AppTheme.gold, width: 1.5),
+                    borderSide:
+                        const BorderSide(color: AppTheme.gold, width: 1.5),
                   ),
                 ),
               ),
-
               const SizedBox(height: 20),
-
-              // Password Field
-              const Text(
-                'Password',
-                style: TextStyle(
-                  color: AppTheme.white,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
+              const Text('Password',
+                  style: TextStyle(
+                      color: AppTheme.white,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500)),
               const SizedBox(height: 8),
               TextField(
                 controller: passwordController,
@@ -134,33 +135,20 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(
-                        color: AppTheme.gold, width: 1.5),
+                    borderSide:
+                        const BorderSide(color: AppTheme.gold, width: 1.5),
                   ),
                 ),
               ),
-
               const SizedBox(height: 12),
-
-              // Forgot Password
               Align(
                 alignment: Alignment.centerRight,
                 child: TextButton(
-                      onPressed: () {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => const HomeScreen(),
-        ),
-      );
-    },
-                  child: const Text(
-                    'Forgot Password?',
-                    style: TextStyle(color: AppTheme.gold),
-                  ),
+                  onPressed: () {},
+                  child: const Text('Forgot Password?',
+                      style: TextStyle(color: AppTheme.gold)),
                 ),
               ),
-
               const SizedBox(height: 24),
 
               // Login Button
@@ -168,7 +156,22 @@ class _LoginScreenState extends State<LoginScreen> {
                 width: double.infinity,
                 height: 56,
                 child: ElevatedButton(
-                  onPressed: () {},
+                  onPressed: authProvider.isLoading
+                      ? null
+                      : () async {
+                          final success = await authProvider.login(
+                            email: emailController.text.trim(),
+                            password: passwordController.text.trim(),
+                          );
+                          if (success && context.mounted) {
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const HomeScreen(),
+                              ),
+                            );
+                          }
+                        },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppTheme.gold,
                     foregroundColor: Colors.black,
@@ -176,46 +179,35 @@ class _LoginScreenState extends State<LoginScreen> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  child: const Text(
-                    'Sign In',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
+                  child: authProvider.isLoading
+                      ? const CircularProgressIndicator(color: Colors.black)
+                      : const Text('Sign In',
+                          style: TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.bold)),
                 ),
               ),
-
               const SizedBox(height: 24),
-
-              // Register Link
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text(
-                    "Don't have an account? ",
-                    style: TextStyle(color: AppTheme.grey),
-                  ),
+                  const Text("Don't have an account? ",
+                      style: TextStyle(color: AppTheme.grey)),
                   GestureDetector(
                     onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const RegisterScreen(),
-                    ),
-                  );
-                },
-                    child: const Text(
-                      'Join Filmdin',
-                      style: TextStyle(
-                        color: AppTheme.gold,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const RegisterScreen(),
+                        ),
+                      );
+                    },
+                    child: const Text('Join Filmdin',
+                        style: TextStyle(
+                            color: AppTheme.gold,
+                            fontWeight: FontWeight.bold)),
                   ),
                 ],
               ),
-
               const SizedBox(height: 40),
             ],
           ),

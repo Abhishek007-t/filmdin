@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../theme/app_theme.dart';
+import '../providers/auth_provider.dart';
+import '../services/api_service.dart';
+import 'login_screen.dart';
+import 'add_credit_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -180,7 +185,6 @@ class _PostCard extends StatelessWidget {
           // User Info Row
           Row(
             children: [
-              // Avatar
               Container(
                 width: 44,
                 height: 44,
@@ -200,7 +204,6 @@ class _PostCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 12),
-              // Name and Role
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -223,7 +226,6 @@ class _PostCard extends StatelessWidget {
                   ],
                 ),
               ),
-              // Follow Button
               Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 14,
@@ -247,7 +249,6 @@ class _PostCard extends StatelessWidget {
 
           const SizedBox(height: 12),
 
-          // Post Content
           Text(
             post['content']!,
             style: const TextStyle(
@@ -259,7 +260,6 @@ class _PostCard extends StatelessWidget {
 
           const SizedBox(height: 16),
 
-          // Action Buttons
           Row(
             children: [
               _ActionButton(
@@ -318,7 +318,6 @@ class SearchTab extends StatelessWidget {
           children: [
             const Text('Discover', style: AppTheme.heading),
             const SizedBox(height: 16),
-            // Search Bar
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               decoration: BoxDecoration(
@@ -471,7 +470,6 @@ class _JobCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Type Badge
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
             decoration: BoxDecoration(
@@ -549,11 +547,20 @@ class _JobCard extends StatelessWidget {
 }
 
 // ─── PROFILE TAB ────────────────────────────────────────
-class ProfileTab extends StatelessWidget {
+class ProfileTab extends StatefulWidget {
   const ProfileTab({super.key});
 
   @override
+  State<ProfileTab> createState() => _ProfileTabState();
+}
+
+class _ProfileTabState extends State<ProfileTab> {
+  @override
   Widget build(BuildContext context) {
+    final authProvider = Provider.of<AuthProvider>(context);
+    final userName = authProvider.user?['name'] ?? 'Your Name';
+    final userRole = authProvider.user?['role'] ?? 'Filmmaker';
+
     return SafeArea(
       child: SingleChildScrollView(
         child: Column(
@@ -573,10 +580,12 @@ class ProfileTab extends StatelessWidget {
                       color: AppTheme.gold,
                       borderRadius: BorderRadius.circular(45),
                     ),
-                    child: const Center(
+                    child: Center(
                       child: Text(
-                        'A',
-                        style: TextStyle(
+                        userName.isNotEmpty
+                            ? userName[0].toUpperCase()
+                            : 'F',
+                        style: const TextStyle(
                           color: Colors.black,
                           fontSize: 36,
                           fontWeight: FontWeight.bold,
@@ -585,21 +594,23 @@ class ProfileTab extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  const Text(
-                    'Abhishek',
-                    style: TextStyle(
+                  Text(
+                    userName,
+                    style: const TextStyle(
                       color: AppTheme.white,
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   const SizedBox(height: 4),
-                  const Text(
-                    'Director • Mangaluru, Karnataka',
-                    style: TextStyle(color: AppTheme.grey, fontSize: 14),
+                  Text(
+                    '$userRole • Mangaluru, Karnataka',
+                    style: const TextStyle(
+                      color: AppTheme.grey,
+                      fontSize: 14,
+                    ),
                   ),
                   const SizedBox(height: 16),
-                  // Stats Row
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
@@ -609,7 +620,6 @@ class ProfileTab extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 16),
-                  // Edit Profile Button
                   SizedBox(
                     width: double.infinity,
                     child: OutlinedButton(
@@ -626,6 +636,35 @@ class ProfileTab extends StatelessWidget {
                       ),
                     ),
                   ),
+                  const SizedBox(height: 8),
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton(
+                      onPressed: () async {
+                        await authProvider.logout();
+                        if (context.mounted) {
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const LoginScreen(),
+                            ),
+                          );
+                        }
+                      },
+                      style: OutlinedButton.styleFrom(
+                        side: BorderSide(
+                          color: Colors.red.withOpacity(0.5),
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: const Text(
+                        'Logout',
+                        style: TextStyle(color: Colors.red),
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -636,47 +675,175 @@ class ProfileTab extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('My Credits', style: AppTheme.heading),
-                  const SizedBox(height: 16),
-                  Center(
-                    child: Column(
-                      children: [
-                        const Icon(
-                          Icons.movie_creation_outlined,
-                          color: AppTheme.grey,
-                          size: 48,
-                        ),
-                        const SizedBox(height: 12),
-                        const Text(
-                          'No credits yet',
-                          style: TextStyle(
-                            color: AppTheme.white,
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        const Text(
-                          'Add your film projects and credits',
-                          style: TextStyle(color: AppTheme.grey),
-                        ),
-                        const SizedBox(height: 16),
-                        ElevatedButton(
-                          onPressed: () {},
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppTheme.gold,
-                            foregroundColor: Colors.black,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text('My Credits', style: AppTheme.heading),
+                      GestureDetector(
+                        onTap: () async {
+                          final result = await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const AddCreditScreen(),
                             ),
+                          );
+                          if (result == true) {
+                            setState(() {});
+                          }
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 8,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppTheme.gold,
+                            borderRadius: BorderRadius.circular(20),
                           ),
                           child: const Text(
-                            '+ Add Credit',
-                            style: TextStyle(fontWeight: FontWeight.bold),
+                            '+ Add',
+                            style: TextStyle(
+                              color: Colors.black,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 13,
+                            ),
                           ),
                         ),
-                      ],
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  FutureBuilder(
+                    future: ApiService.getMyCredits(
+                      token: authProvider.token ?? '',
                     ),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState ==
+                          ConnectionState.waiting) {
+                        return const Center(
+                          child: CircularProgressIndicator(
+                            color: AppTheme.gold,
+                          ),
+                        );
+                      }
+
+                      if (!snapshot.hasData ||
+                          snapshot.data!['data'] == null ||
+                          (snapshot.data!['data']['credits'] as List)
+                              .isEmpty) {
+                        return Center(
+                          child: Column(
+                            children: const [
+                              Icon(
+                                Icons.movie_creation_outlined,
+                                color: AppTheme.grey,
+                                size: 48,
+                              ),
+                              SizedBox(height: 12),
+                              Text(
+                                'No credits yet',
+                                style: TextStyle(
+                                  color: AppTheme.white,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              SizedBox(height: 8),
+                              Text(
+                                'Add your film projects and credits',
+                                style: TextStyle(color: AppTheme.grey),
+                              ),
+                            ],
+                          ),
+                        );
+                      }
+
+                      final credits = snapshot.data!['data']['credits']
+                          as List;
+                      return ListView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: credits.length,
+                        itemBuilder: (context, index) {
+                          final credit = credits[index];
+                          return Container(
+                            margin: const EdgeInsets.only(bottom: 12),
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: AppTheme.darkGrey,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Row(
+                              children: [
+                                Container(
+                                  width: 48,
+                                  height: 48,
+                                  decoration: BoxDecoration(
+                                    color:
+                                        AppTheme.gold.withOpacity(0.15),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: const Icon(
+                                    Icons.movie_outlined,
+                                    color: AppTheme.gold,
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        credit['projectName'],
+                                        style: const TextStyle(
+                                          color: AppTheme.white,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 15,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        '${credit['role']} • ${credit['projectType']}',
+                                        style: const TextStyle(
+                                          color: AppTheme.grey,
+                                          fontSize: 13,
+                                        ),
+                                      ),
+                                      Text(
+                                        '${credit['year']}',
+                                        style: const TextStyle(
+                                          color: AppTheme.gold,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                IconButton(
+                                  icon: const Icon(
+                                    Icons.delete_outline,
+                                    color: Colors.red,
+                                    size: 20,
+                                  ),
+                                  onPressed: () async {
+                                    final result =
+                                        await ApiService.deleteCredit(
+                                      token: authProvider.token!,
+                                      creditId: credit['_id'],
+                                    );
+                                    if (result['success'] &&
+                                        context.mounted) {
+                                      setState(() {});
+                                    }
+                                  },
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      );
+                    },
                   ),
                 ],
               ),

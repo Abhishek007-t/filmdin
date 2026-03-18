@@ -12,6 +12,13 @@ class ApiService {
     ),
   );
 
+  static Map<String, dynamic> _handleDioError(DioException e) {
+    return {
+      'success': false,
+      'message': e.response?.data['message'] ?? 'Something went wrong',
+    };
+  }
+
   // ─── AUTH ────────────────────────────────────────────
 
   // Register
@@ -22,18 +29,18 @@ class ApiService {
     required String role,
   }) async {
     try {
-      final response = await _dio.post('/auth/register', data: {
-        'name': name,
-        'email': email,
-        'password': password,
-        'role': role,
-      });
+      final response = await _dio.post(
+        '/auth/register',
+        data: {
+          'name': name,
+          'email': email,
+          'password': password,
+          'role': role,
+        },
+      );
       return {'success': true, 'data': response.data};
     } on DioException catch (e) {
-      return {
-        'success': false,
-        'message': e.response?.data['message'] ?? 'Something went wrong',
-      };
+      return _handleDioError(e);
     }
   }
 
@@ -43,16 +50,13 @@ class ApiService {
     required String password,
   }) async {
     try {
-      final response = await _dio.post('/auth/login', data: {
-        'email': email,
-        'password': password,
-      });
+      final response = await _dio.post(
+        '/auth/login',
+        data: {'email': email, 'password': password},
+      );
       return {'success': true, 'data': response.data};
     } on DioException catch (e) {
-      return {
-        'success': false,
-        'message': e.response?.data['message'] ?? 'Something went wrong',
-      };
+      return _handleDioError(e);
     }
   }
 
@@ -77,16 +81,11 @@ class ApiService {
           'year': year,
           'description': description,
         },
-        options: Options(
-          headers: {'Authorization': 'Bearer $token'},
-        ),
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
       return {'success': true, 'data': response.data};
     } on DioException catch (e) {
-      return {
-        'success': false,
-        'message': e.response?.data['message'] ?? 'Something went wrong',
-      };
+      return _handleDioError(e);
     }
   }
 
@@ -97,16 +96,11 @@ class ApiService {
     try {
       final response = await _dio.get(
         '/credits/my',
-        options: Options(
-          headers: {'Authorization': 'Bearer $token'},
-        ),
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
       return {'success': true, 'data': response.data};
     } on DioException catch (e) {
-      return {
-        'success': false,
-        'message': e.response?.data['message'] ?? 'Something went wrong',
-      };
+      return _handleDioError(e);
     }
   }
 
@@ -118,10 +112,7 @@ class ApiService {
       final response = await _dio.get('/credits/user/$userId');
       return {'success': true, 'data': response.data};
     } on DioException catch (e) {
-      return {
-        'success': false,
-        'message': e.response?.data['message'] ?? 'Something went wrong',
-      };
+      return _handleDioError(e);
     }
   }
 
@@ -133,16 +124,153 @@ class ApiService {
     try {
       final response = await _dio.delete(
         '/credits/$creditId',
-        options: Options(
-          headers: {'Authorization': 'Bearer $token'},
-        ),
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
       return {'success': true, 'data': response.data};
     } on DioException catch (e) {
-      return {
-        'success': false,
-        'message': e.response?.data['message'] ?? 'Something went wrong',
-      };
+      return _handleDioError(e);
+    }
+  }
+
+  // ─── POSTS ───────────────────────────────────────────
+
+  // Create Post
+  static Future<Map<String, dynamic>> createPost({
+    required String token,
+    required String content,
+  }) async {
+    try {
+      final response = await _dio.post(
+        '/posts',
+        data: {'content': content},
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
+      );
+      return {'success': true, 'data': response.data};
+    } on DioException catch (e) {
+      return _handleDioError(e);
+    }
+  }
+
+  // Get Feed Posts
+  static Future<Map<String, dynamic>> getFeedPosts({
+    required String token,
+  }) async {
+    try {
+      final response = await _dio.get(
+        '/posts/feed',
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
+      );
+      return {'success': true, 'data': response.data};
+    } on DioException catch (e) {
+      return _handleDioError(e);
+    }
+  }
+
+  // Like Post
+  static Future<Map<String, dynamic>> likePost({
+    required String token,
+    required String postId,
+  }) async {
+    try {
+      final response = await _dio.put(
+        '/posts/like/$postId',
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
+      );
+      return {'success': true, 'data': response.data};
+    } on DioException catch (e) {
+      return _handleDioError(e);
+    }
+  }
+
+  // ─── EQUIPMENT ───────────────────────────────────────
+
+  // List Equipment
+  static Future<Map<String, dynamic>> listEquipment({
+    required String token,
+    required Map<String, dynamic> data,
+  }) async {
+    try {
+      final response = await _dio.post(
+        '/equipment',
+        data: data,
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
+      );
+      return {'success': true, 'data': response.data};
+    } on DioException catch (e) {
+      return _handleDioError(e);
+    }
+  }
+
+  // Get All Equipment
+  static Future<Map<String, dynamic>> getAllEquipment({
+    required String token,
+    String? category,
+    String? rentalType,
+  }) async {
+    try {
+      final queryParams = <String, dynamic>{};
+      if (category != null && category.isNotEmpty) {
+        queryParams['category'] = category;
+      }
+      if (rentalType != null && rentalType.isNotEmpty) {
+        queryParams['rentalType'] = rentalType;
+      }
+
+      final response = await _dio.get(
+        '/equipment',
+        queryParameters: queryParams,
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
+      );
+      return {'success': true, 'data': response.data};
+    } on DioException catch (e) {
+      return _handleDioError(e);
+    }
+  }
+
+  // Get My Equipment
+  static Future<Map<String, dynamic>> getMyEquipment({
+    required String token,
+  }) async {
+    try {
+      final response = await _dio.get(
+        '/equipment/my',
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
+      );
+      return {'success': true, 'data': response.data};
+    } on DioException catch (e) {
+      return _handleDioError(e);
+    }
+  }
+
+  // Get Equipment By Id
+  static Future<Map<String, dynamic>> getEquipmentById({
+    required String token,
+    required String equipmentId,
+  }) async {
+    try {
+      final response = await _dio.get(
+        '/equipment/$equipmentId',
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
+      );
+      return {'success': true, 'data': response.data};
+    } on DioException catch (e) {
+      return _handleDioError(e);
+    }
+  }
+
+  // Delete Equipment
+  static Future<Map<String, dynamic>> deleteEquipment({
+    required String token,
+    required String equipmentId,
+  }) async {
+    try {
+      final response = await _dio.delete(
+        '/equipment/$equipmentId',
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
+      );
+      return {'success': true, 'data': response.data};
+    } on DioException catch (e) {
+      return _handleDioError(e);
     }
   }
 
@@ -156,16 +284,11 @@ class ApiService {
     try {
       final response = await _dio.get(
         '/users/$userId',
-        options: Options(
-          headers: {'Authorization': 'Bearer $token'},
-        ),
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
       return {'success': true, 'data': response.data};
     } on DioException catch (e) {
-      return {
-        'success': false,
-        'message': e.response?.data['message'] ?? 'Something went wrong',
-      };
+      return _handleDioError(e);
     }
   }
 
@@ -173,20 +296,99 @@ class ApiService {
   static Future<Map<String, dynamic>> searchUsers({
     required String query,
     required String token,
+    String? role,
   }) async {
     try {
+      String url = '/users/search?q=$query';
+      if (role != null && role.isNotEmpty) {
+        url += '&role=$role';
+      }
       final response = await _dio.get(
-        '/users/search?q=$query',
-        options: Options(
-          headers: {'Authorization': 'Bearer $token'},
-        ),
+        url,
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
       return {'success': true, 'data': response.data};
     } on DioException catch (e) {
-      return {
-        'success': false,
-        'message': e.response?.data['message'] ?? 'Something went wrong',
-      };
+      return _handleDioError(e);
+    }
+  }
+
+  // Get All Users
+  static Future<Map<String, dynamic>> getAllUsers({
+    required String token,
+  }) async {
+    try {
+      final response = await _dio.get(
+        '/users/all',
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
+      );
+      return {'success': true, 'data': response.data};
+    } on DioException catch (e) {
+      return _handleDioError(e);
+    }
+  }
+
+  // Follow User
+  static Future<Map<String, dynamic>> followUser({
+    required String token,
+    required String userId,
+  }) async {
+    try {
+      final response = await _dio.put(
+        '/users/follow/$userId',
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
+      );
+      return {'success': true, 'data': response.data};
+    } on DioException catch (e) {
+      return _handleDioError(e);
+    }
+  }
+
+  // Unfollow User
+  static Future<Map<String, dynamic>> unfollowUser({
+    required String token,
+    required String userId,
+  }) async {
+    try {
+      final response = await _dio.put(
+        '/users/unfollow/$userId',
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
+      );
+      return {'success': true, 'data': response.data};
+    } on DioException catch (e) {
+      return _handleDioError(e);
+    }
+  }
+
+  // Get Followers
+  static Future<Map<String, dynamic>> getFollowers({
+    required String token,
+    required String userId,
+  }) async {
+    try {
+      final response = await _dio.get(
+        '/users/followers/$userId',
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
+      );
+      return {'success': true, 'data': response.data};
+    } on DioException catch (e) {
+      return _handleDioError(e);
+    }
+  }
+
+  // Get Following
+  static Future<Map<String, dynamic>> getFollowing({
+    required String token,
+    required String userId,
+  }) async {
+    try {
+      final response = await _dio.get(
+        '/users/following/$userId',
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
+      );
+      return {'success': true, 'data': response.data};
+    } on DioException catch (e) {
+      return _handleDioError(e);
     }
   }
 }

@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import 'theme/app_theme.dart';
 import 'screens/splash_screen.dart';
 import 'providers/auth_provider.dart';
+import 'providers/post_provider.dart';
+import 'providers/equipment_provider.dart';
 
 void main() {
   runApp(const FilmdinApp());
@@ -16,6 +18,8 @@ class FilmdinApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider(create: (_) => PostProvider()),
+        ChangeNotifierProvider(create: (_) => EquipmentProvider()),
       ],
       child: MaterialApp(
         title: 'Filmdin',

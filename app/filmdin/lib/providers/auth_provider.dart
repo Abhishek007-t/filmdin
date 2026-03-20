@@ -48,18 +48,12 @@ class AuthProvider extends ChangeNotifier {
   }
 
   // Login
-  Future<bool> login({
-    required String email,
-    required String password,
-  }) async {
+  Future<bool> login({required String email, required String password}) async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
 
-    final result = await ApiService.login(
-      email: email,
-      password: password,
-    );
+    final result = await ApiService.login(email: email, password: password);
 
     _isLoading = false;
 
@@ -71,6 +65,63 @@ class AuthProvider extends ChangeNotifier {
       return true;
     } else {
       _errorMessage = result['message'];
+      notifyListeners();
+      return false;
+    }
+  }
+
+  // Update profile
+  Future<bool> updateProfile({
+    required String name,
+    required String bio,
+    required String location,
+    required String role,
+  }) async {
+    if (_token == null || _token!.isEmpty) {
+      _errorMessage = 'User is not authenticated';
+      notifyListeners();
+      return false;
+    }
+
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    final result = await ApiService.updateProfile(
+      token: _token!,
+      name: name,
+      bio: bio,
+      location: location,
+      role: role,
+    );
+
+    _isLoading = false;
+
+    if (result['success']) {
+      final updatedUser =
+          result['data']?['user'] as Map<String, dynamic>? ??
+          <String, dynamic>{};
+
+      _user = {
+        ...?_user,
+        ...updatedUser,
+        'name': name,
+        'bio': bio,
+        'location': location,
+        'role': role,
+      };
+
+      if (_user?['_id'] == null && _user?['id'] != null) {
+        _user?['_id'] = _user?['id'];
+      }
+      if (_user?['id'] == null && _user?['_id'] != null) {
+        _user?['id'] = _user?['_id'];
+      }
+
+      notifyListeners();
+      return true;
+    } else {
+      _errorMessage = result['message'] ?? 'Failed to update profile';
       notifyListeners();
       return false;
     }

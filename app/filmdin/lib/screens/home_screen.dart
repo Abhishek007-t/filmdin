@@ -3,11 +3,14 @@ import 'package:provider/provider.dart';
 import '../theme/app_theme.dart';
 import '../providers/auth_provider.dart';
 import '../providers/post_provider.dart';
+import '../providers/job_provider.dart';
 import '../services/api_service.dart';
 import 'login_screen.dart';
 import 'add_credit_screen.dart';
 import 'user_profile_screen.dart';
 import 'equipment_screen.dart';
+import 'jobs_screen.dart';
+import 'edit_profile_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -23,7 +26,7 @@ class _HomeScreenState extends State<HomeScreen> {
     const FeedTab(),
     const SearchTab(),
     const EquipmentScreen(),
-    const JobsTab(),
+    const JobsScreen(),
     const ProfileTab(),
   ];
 
@@ -1114,7 +1117,8 @@ class _ProfileTabState extends State<ProfileTab> {
   Future<void> _loadProfileData() async {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final token = authProvider.token ?? '';
-    final userId = authProvider.user?['_id']?.toString() ?? '';
+    final userId = (authProvider.user?['_id'] ?? authProvider.user?['id'] ?? '')
+        .toString();
 
     if (token.isEmpty || userId.isEmpty) {
       if (mounted) {
@@ -1146,6 +1150,11 @@ class _ProfileTabState extends State<ProfileTab> {
     final profileUser = _profileUser ?? authProvider.user ?? {};
     final userName = profileUser['name'] ?? 'Your Name';
     final userRole = profileUser['role'] ?? 'Filmmaker';
+    final userBio = (profileUser['bio'] ?? authProvider.user?['bio'] ?? '')
+        .toString();
+    final userLocation =
+        (profileUser['location'] ?? authProvider.user?['location'] ?? '')
+            .toString();
     final followersCount = (profileUser['followers'] as List? ?? []).length;
     final followingCount = (profileUser['following'] as List? ?? []).length;
 
@@ -1192,12 +1201,25 @@ class _ProfileTabState extends State<ProfileTab> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      '$userRole • Mangaluru, Karnataka',
+                      userLocation.isNotEmpty
+                          ? '$userRole • $userLocation'
+                          : userRole,
                       style: const TextStyle(
                         color: AppTheme.grey,
                         fontSize: 14,
                       ),
                     ),
+                    if (userBio.isNotEmpty) ...[
+                      const SizedBox(height: 8),
+                      Text(
+                        userBio,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          color: AppTheme.grey,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ],
                     if (_isProfileLoading) ...[
                       const SizedBox(height: 12),
                       const SizedBox(
@@ -1222,7 +1244,21 @@ class _ProfileTabState extends State<ProfileTab> {
                     SizedBox(
                       width: double.infinity,
                       child: OutlinedButton(
-                        onPressed: () {},
+                        onPressed: () async {
+                          final result = await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const EditProfileScreen(),
+                            ),
+                          );
+
+                          if (result == true && context.mounted) {
+                            setState(() {
+                              _profileUser = authProvider.user;
+                            });
+                            _loadProfileData();
+                          }
+                        },
                         style: OutlinedButton.styleFrom(
                           side: const BorderSide(color: AppTheme.gold),
                           shape: RoundedRectangleBorder(

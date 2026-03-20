@@ -60,6 +60,26 @@ class ApiService {
     }
   }
 
+  // Update Profile
+  static Future<Map<String, dynamic>> updateProfile({
+    required String token,
+    required String name,
+    required String bio,
+    required String location,
+    required String role,
+  }) async {
+    try {
+      final response = await _dio.put(
+        '/users/profile',
+        data: {'name': name, 'bio': bio, 'location': location, 'role': role},
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
+      );
+      return {'success': true, 'data': response.data};
+    } on DioException catch (e) {
+      return _handleDioError(e);
+    }
+  }
+
   // ─── CREDITS ─────────────────────────────────────────
 
   // Add Credit
@@ -384,6 +404,107 @@ class ApiService {
     try {
       final response = await _dio.get(
         '/users/following/$userId',
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
+      );
+      return {'success': true, 'data': response.data};
+    } on DioException catch (e) {
+      return _handleDioError(e);
+    }
+  }
+  // ─── JOBS ────────────────────────────────────────────
+
+  // Create Job
+  static Future<Map<String, dynamic>> createJob({
+    required String token,
+    required Map<String, dynamic> data,
+  }) async {
+    try {
+      final response = await _dio.post(
+        '/jobs',
+        data: data,
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
+      );
+      return {'success': true, 'data': response.data};
+    } on DioException catch (e) {
+      return _handleDioError(e);
+    }
+  }
+
+  // Get All Jobs
+  static Future<Map<String, dynamic>> getAllJobs({
+    required String token,
+    String? jobType,
+  }) async {
+    try {
+      final queryParams = <String, dynamic>{};
+      if (jobType != null && jobType.isNotEmpty) {
+        queryParams['jobType'] = jobType;
+      }
+
+      final response = await _dio.get(
+        '/jobs',
+        queryParameters: queryParams,
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
+      );
+      return {'success': true, 'data': response.data};
+    } on DioException catch (e) {
+      return _handleDioError(e);
+    }
+  }
+
+  // Get My Jobs
+  static Future<Map<String, dynamic>> getMyJobs({required String token}) async {
+    try {
+      final response = await _dio.get(
+        '/jobs/my',
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
+      );
+      return {'success': true, 'data': response.data};
+    } on DioException catch (e) {
+      return _handleDioError(e);
+    }
+  }
+
+  // Get Job By ID
+  static Future<Map<String, dynamic>> getJobById({
+    required String token,
+    required String jobId,
+  }) async {
+    try {
+      final response = await _dio.get(
+        '/jobs/$jobId',
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
+      );
+      return {'success': true, 'data': response.data};
+    } on DioException catch (e) {
+      return _handleDioError(e);
+    }
+  }
+
+  // Apply to Job
+  static Future<Map<String, dynamic>> applyToJob({
+    required String token,
+    required String jobId,
+  }) async {
+    try {
+      final response = await _dio.post(
+        '/jobs/$jobId/apply',
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
+      );
+      return {'success': true, 'data': response.data};
+    } on DioException catch (e) {
+      return _handleDioError(e);
+    }
+  }
+
+  // Delete Job
+  static Future<Map<String, dynamic>> deleteJob({
+    required String token,
+    required String jobId,
+  }) async {
+    try {
+      final response = await _dio.delete(
+        '/jobs/$jobId',
         options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
       return {'success': true, 'data': response.data};

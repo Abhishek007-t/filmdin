@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
 
 class ApiService {
-  static const String baseUrl = 'http://localhost:5000/api';
+  static const String baseUrl = 'http://192.168.0.109:5000/api';
 
   static final Dio _dio = Dio(
     BaseOptions(
@@ -13,10 +13,18 @@ class ApiService {
   );
 
   static Map<String, dynamic> _handleDioError(DioException e) {
-    return {
-      'success': false,
-      'message': e.response?.data['message'] ?? 'Something went wrong',
-    };
+    final dynamic responseData = e.response?.data;
+    String message = 'Something went wrong';
+
+    if (responseData is Map<String, dynamic>) {
+      message = (responseData['message'] ?? 'Something went wrong').toString();
+    } else if (responseData is String && responseData.trim().isNotEmpty) {
+      message = responseData;
+    } else if (e.message != null && e.message!.trim().isNotEmpty) {
+      message = e.message!;
+    }
+
+    return {'success': false, 'message': message};
   }
 
   // ─── AUTH ────────────────────────────────────────────

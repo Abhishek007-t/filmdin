@@ -65,32 +65,43 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
     setState(() => isSaving = true);
 
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final success = await authProvider.updateProfile(
-      name: nameController.text.trim(),
-      bio: bioController.text.trim(),
-      location: locationController.text.trim(),
-      role: selectedRole,
-    );
+    try {
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final success = await authProvider.updateProfile(
+        name: nameController.text.trim(),
+        bio: bioController.text.trim(),
+        location: locationController.text.trim(),
+        role: selectedRole,
+      );
 
-    if (!mounted) return;
+      if (!mounted) return;
 
-    setState(() => isSaving = false);
+      setState(() => isSaving = false);
 
-    if (success) {
+      if (success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Profile updated successfully!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        Navigator.pop(context, true);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              authProvider.errorMessage ?? 'Failed to update profile',
+            ),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => isSaving = false);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Profile updated successfully!'),
-          backgroundColor: Colors.green,
-        ),
-      );
-      Navigator.pop(context, true);
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            authProvider.errorMessage ?? 'Failed to update profile',
-          ),
+          content: Text('Failed to update profile'),
           backgroundColor: Colors.red,
         ),
       );

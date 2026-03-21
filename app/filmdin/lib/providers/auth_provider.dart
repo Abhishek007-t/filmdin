@@ -87,41 +87,48 @@ class AuthProvider extends ChangeNotifier {
     _errorMessage = null;
     notifyListeners();
 
-    final result = await ApiService.updateProfile(
-      token: _token!,
-      name: name,
-      bio: bio,
-      location: location,
-      role: role,
-    );
+    try {
+      final result = await ApiService.updateProfile(
+        token: _token!,
+        name: name,
+        bio: bio,
+        location: location,
+        role: role,
+      );
 
-    _isLoading = false;
+      _isLoading = false;
 
-    if (result['success']) {
-      final updatedUser =
-          result['data']?['user'] as Map<String, dynamic>? ??
-          <String, dynamic>{};
+      if (result['success']) {
+        final updatedUser =
+            result['data']?['user'] as Map<String, dynamic>? ??
+            <String, dynamic>{};
 
-      _user = {
-        ...?_user,
-        ...updatedUser,
-        'name': name,
-        'bio': bio,
-        'location': location,
-        'role': role,
-      };
+        _user = {
+          ...?_user,
+          ...updatedUser,
+          'name': name,
+          'bio': bio,
+          'location': location,
+          'role': role,
+        };
 
-      if (_user?['_id'] == null && _user?['id'] != null) {
-        _user?['_id'] = _user?['id'];
+        if (_user?['_id'] == null && _user?['id'] != null) {
+          _user?['_id'] = _user?['id'];
+        }
+        if (_user?['id'] == null && _user?['_id'] != null) {
+          _user?['id'] = _user?['_id'];
+        }
+
+        notifyListeners();
+        return true;
+      } else {
+        _errorMessage = result['message'] ?? 'Failed to update profile';
+        notifyListeners();
+        return false;
       }
-      if (_user?['id'] == null && _user?['_id'] != null) {
-        _user?['id'] = _user?['_id'];
-      }
-
-      notifyListeners();
-      return true;
-    } else {
-      _errorMessage = result['message'] ?? 'Failed to update profile';
+    } catch (_) {
+      _isLoading = false;
+      _errorMessage = 'Failed to update profile';
       notifyListeners();
       return false;
     }

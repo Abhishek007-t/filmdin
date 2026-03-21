@@ -1,11 +1,11 @@
 {
-  "name": "backend",
+  "name": "filmdin-backend",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Filmdin API Backend",
+  "main": "server.js",
   "scripts": {
-  "start": "node server.js",
-  "dev": "nodemon server.js"
+    "start": "node server.js",
+    "dev": "nodemon server.js"
   },
   "keywords": [],
   "author": "",
